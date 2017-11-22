@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="Mi Ubicación"
+        android:id="@+id/item_yo"/>
+    <item android:title="Universidad"
+        android:id="@+id/item_universidad"/>
+    <item android:title="Actualizar Mi Ubicación"
+        android:id="@+id/item_actualizar"/>
+</menu>

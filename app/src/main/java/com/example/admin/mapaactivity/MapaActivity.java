@@ -11,6 +11,10 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -24,10 +28,12 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapaActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
+public class MapaActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
+    //mapa de google
     private GoogleMap mMap;
     //CameraPosition para manejar la camara
     private CameraPosition mCameraPosition;
@@ -43,9 +49,12 @@ public class MapaActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient mGoogleApiClient;
     //posicion por defecto
     private LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
-    // Keys for storing activity state.
+    //identificadores para guardar la localizacion
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
+
+    private Marcador marcadorUNIVERSIDAD;
+    private Marker marcadorMiUbicacion;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +65,11 @@ public class MapaActivity extends FragmentActivity implements OnMapReadyCallback
             mDefaultLocation = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
+        marcadorUNIVERSIDAD = (Marcador) this.getIntent().getExtras().getSerializable("MARCADOR");
         setContentView(R.layout.activity_mapa);
+        //poner el menu
+
+
 
         //encargado del GPS
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -94,7 +107,17 @@ public class MapaActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        //control zoom
+        googleMap.setBuildingsEnabled(true);
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
         //agregando marcadores
+        if(marcadorUNIVERSIDAD!=null){
+            mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(marcadorUNIVERSIDAD.latitud, marcadorUNIVERSIDAD.longitud))
+                    .title(marcadorUNIVERSIDAD.titulo)
+                    .icon((BitmapDescriptorFactory
+                    .defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))));
+        }
     }
 
     @Override
@@ -126,9 +149,11 @@ public class MapaActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng islamabad = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(islamabad, DEFAULT_ZOOM));
             //agregando el marcador de la posicion actual
-            mMap.addMarker(new MarkerOptions().position(islamabad).title("Center Point")
+
+            marcadorMiUbicacion = mMap.addMarker(new MarkerOptions().position(islamabad).title("Ubicación Actual")
                     .icon((BitmapDescriptorFactory
-                            .defaultMarker(BitmapDescriptorFactory.HUE_BLUE))));
+                            .defaultMarker(BitmapDescriptorFactory.HUE_BLUE))) );
+
         } else {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
         }
@@ -146,7 +171,7 @@ public class MapaActivity extends FragmentActivity implements OnMapReadyCallback
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
-                    getDeviceLocation();
+                    getDeviceLocation();//actualizo la ubicacion
                 }
             }
         }
@@ -167,4 +192,32 @@ public class MapaActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    //para el menu
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.menu_mapa, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        LatLng islamabad;
+        switch (item.getItemId()) {
+            case R.id.item_yo:
+                islamabad = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(islamabad, DEFAULT_ZOOM));
+                break;
+            case R.id.item_universidad:
+                islamabad = new LatLng(marcadorUNIVERSIDAD.latitud,marcadorUNIVERSIDAD.longitud);
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(islamabad, DEFAULT_ZOOM));
+                break;
+            case R.id.item_actualizar:
+                marcadorMiUbicacion.remove();
+                getDeviceLocation();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }

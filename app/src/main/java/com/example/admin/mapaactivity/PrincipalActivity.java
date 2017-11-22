@@ -6,6 +6,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
 import java.util.ArrayList;
 
 public class PrincipalActivity extends AppCompatActivity {
@@ -42,15 +46,16 @@ public class PrincipalActivity extends AppCompatActivity {
             }
         });
     }
-    private void irMarcador(int pos){
-        startActivity(new Intent(this,MapaActivity.class));
+    private void irMarcador(int pos) {
+        Intent intent = new Intent(this,MapaActivity.class);
+        intent.putExtra("MARCADOR",lstMarcadores.get(pos));
+        startActivity(intent);
     }
 
-    private void llenarMarcadores(){
+    private void llenarMarcadores() {
         lstMarcadores       = new ArrayList<>();
-        lstMarcadores.add(new Marcador("Universidad de sonsonate","13.730288","-89.71952699999997"));
-        lstMarcadores.add(new Marcador("Universidad Nacional","13.7161024","-89.20346899999998"));
-        lstMarcadores.add(new Marcador("Universidad Don Bosco","13.7159035","-89.1536987"));
-
+        lstMarcadores.add(new Marcador(13.730287, -89.719526999999971,"Universidad de Sonsonate"));
+        lstMarcadores.add(new Marcador(13.7161024, -89.20346899999998,"Universidad Nacional"));
+        lstMarcadores.add(new Marcador(13.7159035, -89.1536987,"Universidad Don Bosco"));
     }
 }

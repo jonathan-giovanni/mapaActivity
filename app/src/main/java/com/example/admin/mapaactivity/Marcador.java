@@ -1,41 +1,20 @@
 package com.example.admin.mapaactivity;
 
+import java.io.Serializable;
+
 /**
- * Created by admin on 21/11/17.
+ * Created by admin on 22/11/17.
  */
 
-public class Marcador {
-    String nombre;
-    String latitud;
-    String longitud;
+public class Marcador implements Serializable{
+    public double latitud;
+    public double longitud;
+    public String titulo;
 
-    public Marcador(String nombre, String latitud, String longitud) {
-        this.nombre = nombre;
+    public Marcador(double latitud, double longitud, String titulo) {
         this.latitud = latitud;
         this.longitud = longitud;
+        this.titulo = titulo;
     }
 
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getLatitud() {
-        return latitud;
-    }
-
-    public void setLatitud(String latitud) {
-        this.latitud = latitud;
-    }
-
-    public String getLongitud() {
-        return longitud;
-    }
-
-    public void setLongitud(String longitud) {
-        this.longitud = longitud;
-    }
 }
