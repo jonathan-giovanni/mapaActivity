@@ -7,4 +7,6 @@
         android:id="@+id/item_universidad"/>
     <item android:title="Actualizar Mi Ubicación"
         android:id="@+id/item_actualizar"/>
+    <item android:title="Trazar Ruta"
+        android:id="@+id/item_ruta"/>
 </menu>

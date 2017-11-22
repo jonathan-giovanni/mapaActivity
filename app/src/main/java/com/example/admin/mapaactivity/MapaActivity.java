@@ -2,6 +2,7 @@ package com.example.admin.mapaactivity;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -17,10 +18,17 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.akexorcist.googledirection.DirectionCallback;
+import com.akexorcist.googledirection.GoogleDirection;
+import com.akexorcist.googledirection.constant.TransportMode;
+import com.akexorcist.googledirection.model.Direction;
+import com.akexorcist.googledirection.model.Route;
+import com.akexorcist.googledirection.util.DirectionConverter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -31,7 +39,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapaActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
+import java.util.ArrayList;
+
+public class MapaActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks,DirectionCallback {
 
     //mapa de google
     private GoogleMap mMap;
@@ -52,9 +62,11 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     //identificadores para guardar la localizacion
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
-
+    //marcador ubicacion - universidad
     private Marcador marcadorUNIVERSIDAD;
     private Marker marcadorMiUbicacion;
+    //llave de DIrecion - diferente a la de mapa
+    String keyDirection = "AIzaSyAl5b2N2JZX3fWUy4u0D8JmFXHNlvF34o0";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,13 +159,11 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
         } else if (mLastKnownLocation != null) {
             LatLng islamabad = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(islamabad, DEFAULT_ZOOM));
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(islamabad));
             //agregando el marcador de la posicion actual
-
             marcadorMiUbicacion = mMap.addMarker(new MarkerOptions().position(islamabad).title("Ubicación Actual")
                     .icon((BitmapDescriptorFactory
                             .defaultMarker(BitmapDescriptorFactory.HUE_BLUE))) );
-
         } else {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
         }
@@ -200,24 +210,50 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         getMenuInflater().inflate(R.menu.menu_mapa, menu);
         return true;
     }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         LatLng islamabad;
         switch (item.getItemId()) {
             case R.id.item_yo:
                 islamabad = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(islamabad, DEFAULT_ZOOM));
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(islamabad));
                 break;
             case R.id.item_universidad:
                 islamabad = new LatLng(marcadorUNIVERSIDAD.latitud,marcadorUNIVERSIDAD.longitud);
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(islamabad, DEFAULT_ZOOM));
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(islamabad));
                 break;
             case R.id.item_actualizar:
                 marcadorMiUbicacion.remove();
                 getDeviceLocation();
                 break;
+            case R.id.item_ruta:
+                pedirDireccion();
+                break;
         }
         return super.onOptionsItemSelected(item);
+    }
+    //para la direccion
+    public void pedirDireccion() {
+        Toast.makeText(this,"Trazando ruta",Toast.LENGTH_SHORT).show();
+        GoogleDirection.withServerKey(keyDirection)
+                .from(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()))
+                .to(new LatLng(marcadorUNIVERSIDAD.latitud,marcadorUNIVERSIDAD.longitud))
+                .transportMode(TransportMode.DRIVING)
+                .execute(this);
+    }
+
+    @Override
+    public void onDirectionSuccess(Direction direction, String rawBody) {
+        Toast.makeText(this,"Ruta Trazada",Toast.LENGTH_SHORT).show();
+        if (direction.isOK()) {
+            Route route = direction.getRouteList().get(0);
+            ArrayList<LatLng> directionPositionList = route.getLegList().get(0).getDirectionPoint();
+            mMap.addPolyline(DirectionConverter.createPolyline(this, directionPositionList, 5, Color.RED));
+        }
+    }
+
+    @Override
+    public void onDirectionFailure(Throwable t) {
+        Toast.makeText(this,"Fallo al trazar ruta",Toast.LENGTH_SHORT).show();
     }
 }
