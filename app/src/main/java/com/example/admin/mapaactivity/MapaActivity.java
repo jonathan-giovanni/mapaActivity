@@ -1,20 +1,15 @@
 package com.example.admin.mapaactivity;
 
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -28,7 +23,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -38,6 +32,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 
 import java.util.ArrayList;
 
@@ -67,6 +62,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Marker marcadorMiUbicacion;
     //llave de DIrecion - diferente a la de mapa
     String keyDirection = "AIzaSyAl5b2N2JZX3fWUy4u0D8JmFXHNlvF34o0";
+    Polyline ruta;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,14 +148,15 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
             }
             if(mLastKnownLocation==null){
-                Toast.makeText(this, "GPS desabilitado, porfavor activalo", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "GPS deshabilitado, porfavor activalo", Toast.LENGTH_SHORT).show();
             }
         }
         if (mCameraPosition != null) {
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
         } else if (mLastKnownLocation != null) {
             LatLng islamabad = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(islamabad));
+            //mMap.animateCamera(CameraUpdateFactory.newLatLng(islamabad));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(islamabad,DEFAULT_ZOOM));
             //agregando el marcador de la posicion actual
             marcadorMiUbicacion = mMap.addMarker(new MarkerOptions().position(islamabad).title("Ubicación Actual")
                     .icon((BitmapDescriptorFactory
@@ -216,11 +213,11 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         switch (item.getItemId()) {
             case R.id.item_yo:
                 islamabad = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
-                mMap.animateCamera(CameraUpdateFactory.newLatLng(islamabad));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(islamabad,DEFAULT_ZOOM));
                 break;
             case R.id.item_universidad:
                 islamabad = new LatLng(marcadorUNIVERSIDAD.latitud,marcadorUNIVERSIDAD.longitud);
-                mMap.animateCamera(CameraUpdateFactory.newLatLng(islamabad));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(islamabad,DEFAULT_ZOOM));
                 break;
             case R.id.item_actualizar:
                 marcadorMiUbicacion.remove();
@@ -245,10 +242,12 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onDirectionSuccess(Direction direction, String rawBody) {
         Toast.makeText(this,"Ruta Trazada",Toast.LENGTH_SHORT).show();
+
         if (direction.isOK()) {
+            if(ruta!=null) ruta.remove();
             Route route = direction.getRouteList().get(0);
             ArrayList<LatLng> directionPositionList = route.getLegList().get(0).getDirectionPoint();
-            mMap.addPolyline(DirectionConverter.createPolyline(this, directionPositionList, 5, Color.RED));
+            ruta = mMap.addPolyline(DirectionConverter.createPolyline(this, directionPositionList, 3, Color.BLUE));
         }
     }
 
